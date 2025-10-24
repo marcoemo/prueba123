@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.amilimetros.data.local.animal.AnimalEntity
 import com.example.amilimetros.data.repository.AnimalRepository
+import com.example.amilimetros.ui.notification.NotificationManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,7 +24,7 @@ class AnimalViewModel(
     private val _uiState = MutableStateFlow(AnimalUiState())
     val uiState: StateFlow<AnimalUiState> = _uiState
 
-    // Lista de animales disponibles para adopción (Flow que se actualiza automáticamente)
+    // Lista de animales disponibles para adopción
     val availableAnimals = animalRepository.getAvailableAnimals()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -36,13 +37,16 @@ class AnimalViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             val result = animalRepository.adoptAnimal(animal)
+
             _uiState.value = if (result.isSuccess) {
+                NotificationManager.showSuccess("¡${animal.name} ha sido adoptado! 🎉")
                 _uiState.value.copy(
                     isLoading = false,
                     successMsg = "¡${animal.name} ha sido adoptado! 🎉",
                     errorMsg = null
                 )
             } else {
+                NotificationManager.showError("Error al adoptar el animal")
                 _uiState.value.copy(
                     isLoading = false,
                     errorMsg = "Error al adoptar el animal",
@@ -56,13 +60,15 @@ class AnimalViewModel(
     fun addAnimal(animal: AnimalEntity) {
         viewModelScope.launch {
             val result = animalRepository.addAnimal(animal)
-            _uiState.value = if (result.isSuccess) {
-                _uiState.value.copy(
+            if (result.isSuccess) {
+                NotificationManager.showSuccess("Animal agregado correctamente")
+                _uiState.value = _uiState.value.copy(
                     successMsg = "Animal agregado correctamente",
                     errorMsg = null
                 )
             } else {
-                _uiState.value.copy(
+                NotificationManager.showError("Error al agregar animal")
+                _uiState.value = _uiState.value.copy(
                     errorMsg = "Error al agregar animal",
                     successMsg = null
                 )
@@ -74,13 +80,15 @@ class AnimalViewModel(
     fun updateAnimal(animal: AnimalEntity) {
         viewModelScope.launch {
             val result = animalRepository.updateAnimal(animal)
-            _uiState.value = if (result.isSuccess) {
-                _uiState.value.copy(
+            if (result.isSuccess) {
+                NotificationManager.showSuccess("Animal actualizado correctamente")
+                _uiState.value = _uiState.value.copy(
                     successMsg = "Animal actualizado correctamente",
                     errorMsg = null
                 )
             } else {
-                _uiState.value.copy(
+                NotificationManager.showError("Error al actualizar animal")
+                _uiState.value = _uiState.value.copy(
                     errorMsg = "Error al actualizar animal",
                     successMsg = null
                 )
@@ -92,13 +100,15 @@ class AnimalViewModel(
     fun deleteAnimal(animal: AnimalEntity) {
         viewModelScope.launch {
             val result = animalRepository.deleteAnimal(animal)
-            _uiState.value = if (result.isSuccess) {
-                _uiState.value.copy(
+            if (result.isSuccess) {
+                NotificationManager.showSuccess("Animal eliminado correctamente")
+                _uiState.value = _uiState.value.copy(
                     successMsg = "Animal eliminado correctamente",
                     errorMsg = null
                 )
             } else {
-                _uiState.value.copy(
+                NotificationManager.showError("Error al eliminar animal")
+                _uiState.value = _uiState.value.copy(
                     errorMsg = "Error al eliminar animal",
                     successMsg = null
                 )

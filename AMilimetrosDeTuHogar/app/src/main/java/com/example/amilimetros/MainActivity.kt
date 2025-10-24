@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -19,6 +20,8 @@ import com.example.amilimetros.navigation.Route
 import com.example.amilimetros.ui.components.AppTopBar
 import com.example.amilimetros.ui.components.AppDrawer
 import com.example.amilimetros.ui.components.defaultDrawerItems
+import com.example.amilimetros.ui.notification.NotificationManager
+import com.example.amilimetros.ui.notification.CustomSnackbar
 import com.example.amilimetros.ui.theme.AMilimetrosTheme
 import kotlinx.coroutines.launch
 
@@ -45,6 +48,9 @@ fun AppScaffold() {
     // Estados de sesión
     val isLoggedIn by userPrefs.isLoggedIn.collectAsStateWithLifecycle(false)
     val isAdmin by userPrefs.isAdmin.collectAsStateWithLifecycle(false)
+
+    // ✅ Estado de notificaciones GLOBAL
+    val notificationState by NotificationManager.notificationState.collectAsStateWithLifecycle()
 
     // Ruta actual
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -126,25 +132,33 @@ fun AppScaffold() {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
-                if (showTopBar) {
-                    AppTopBar(
-                        onOpenDrawer = {
-                            scope.launch { drawerState.open() }
-                        },
-                        onHome = {
-                            navController.navigate(Route.Home.path) {
-                                popUpTo(Route.Home.path) { inclusive = true }
+                Column {
+                    if (showTopBar) {
+                        AppTopBar(
+                            onOpenDrawer = {
+                                scope.launch { drawerState.open() }
+                            },
+                            onHome = {
+                                navController.navigate(Route.Home.path) {
+                                    popUpTo(Route.Home.path) { inclusive = true }
+                                }
+                            },
+                            onProducts = {
+                                navController.navigate(Route.Products.path)
+                            },
+                            onAnimals = {
+                                navController.navigate(Route.Animals.path)
+                            },
+                            onCart = {
+                                navController.navigate(Route.Cart.path)
                             }
-                        },
-                        onProducts = {
-                            navController.navigate(Route.Products.path)
-                        },
-                        onAnimals = {
-                            navController.navigate(Route.Animals.path)
-                        },
-                        onCart = {
-                            navController.navigate(Route.Cart.path)
-                        }
+                        )
+                    }
+
+                    // ✅ NOTIFICACIÓN GLOBAL (siempre visible)
+                    CustomSnackbar(
+                        state = notificationState,
+                        onDismiss = { NotificationManager.dismiss() }
                     )
                 }
             }

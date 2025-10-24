@@ -16,21 +16,57 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = DarkPrimary,
+    onPrimary = DeepPurple,
+    primaryContainer = BluePurple,
+    onPrimaryContainer = ElectricBlue,
+
+    secondary = DarkSecondary,
+    onSecondary = RichPurple,
+    secondaryContainer = CornflowerBlue,
+    onSecondaryContainer = Aquamarine,
+
+    tertiary = DarkTertiary,
+    onTertiary = DeepPurple,
+    tertiaryContainer = BlueJeans,
+    onTertiaryContainer = ElectricBlue,
+
+    background = DeepPurple,
+    onBackground = ElectricBlue,
+    surface = RichPurple,
+    onSurface = Aquamarine,
+    surfaceVariant = BluePurple,
+    onSurfaceVariant = Turquoise
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = LightPrimary,
+    onPrimary = ElectricBlue,
+    primaryContainer = SkyBlue,
+    onPrimaryContainer = DeepPurple,
+
+    secondary = LightSecondary,
+    onSecondary = Aquamarine,
+    secondaryContainer = Turquoise,
+    onSecondaryContainer = RichPurple,
+
+    tertiary = LightTertiary,
+    onTertiary = ElectricBlue,
+    tertiaryContainer = MediumCyan,
+    onTertiaryContainer = DeepPurple,
+
+    background = ElectricBlue,
+    onBackground = DeepPurple,
+    surface = Aquamarine,
+    onSurface = DeepPurple,
+    surfaceVariant = Turquoise,
+    onSurfaceVariant = RichPurple
 )
 
 @Composable
 fun AMilimetrosTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // ✅ Desactivado para usar nuestra paleta
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

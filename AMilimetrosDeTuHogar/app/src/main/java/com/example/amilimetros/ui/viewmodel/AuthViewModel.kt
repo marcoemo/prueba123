@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.example.amilimetros.domain.validation.*
 import com.example.amilimetros.data.repository.UserRepository
+import com.example.amilimetros.ui.notification.NotificationManager
 
 // Estados de UI
 data class LoginUiState(
@@ -20,8 +21,8 @@ data class LoginUiState(
     val canSubmit: Boolean = false,
     val success: Boolean = false,
     val errorMsg: String? = null,
-    val loggedUserId: Long? = null,      // ✅ ID del usuario logueado
-    val isAdmin: Boolean = false          // ✅ Flag de administrador
+    val loggedUserId: Long? = null,
+    val isAdmin: Boolean = false
 )
 
 data class RegisterUiState(
@@ -76,18 +77,12 @@ class AuthViewModel(
             _login.update { it.copy(isSubmitting = true, errorMsg = null, success = false) }
             delay(500)
 
-            // ✅ LOG PARA DEBUG
-            android.util.Log.d("LOGIN_DEBUG", "Intentando login con: ${s.email.trim()}")
-
             val result = repository.login(s.email.trim(), s.pass)
-
-            // ✅ LOG PARA DEBUG
-            android.util.Log.d("LOGIN_DEBUG", "Resultado: ${if (result.isSuccess) "ÉXITO" else "ERROR: ${result.exceptionOrNull()?.message}"}")
 
             _login.update {
                 if (result.isSuccess) {
                     val user = result.getOrNull()!!
-                    android.util.Log.d("LOGIN_DEBUG", "Usuario encontrado: ${user.name}, isAdmin: ${user.isAdmin}")
+                    NotificationManager.showSuccess("¡Bienvenido ${user.name}!")
                     it.copy(
                         isSubmitting = false,
                         success = true,
@@ -96,6 +91,7 @@ class AuthViewModel(
                         isAdmin = user.isAdmin
                     )
                 } else {
+                    NotificationManager.showError(result.exceptionOrNull()?.message ?: "Error de autenticación")
                     it.copy(
                         isSubmitting = false,
                         success = false,
@@ -167,8 +163,10 @@ class AuthViewModel(
 
             _register.update {
                 if (result.isSuccess) {
+                    NotificationManager.showSuccess("¡Cuenta creada! Ya puedes iniciar sesión")
                     it.copy(isSubmitting = false, success = true, errorMsg = null)
                 } else {
+                    NotificationManager.showError(result.exceptionOrNull()?.message ?: "Error al registrar")
                     it.copy(isSubmitting = false, success = false,
                         errorMsg = result.exceptionOrNull()?.message ?: "No se pudo registrar")
                 }

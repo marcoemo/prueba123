@@ -2,10 +2,26 @@ package com.example.amilimetros.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Paleta https://coolors.co/7400b8-6930c3-5e60ce-5390d9-4ea8de-48bfe3-56cfe1-64dfdf-72efdd-80ffdb
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Colores principales
+val DeepPurple = Color(0xFF7400B8)
+val RichPurple = Color(0xFF6930C3)
+val BluePurple = Color(0xFF5E60CE)
+val CornflowerBlue = Color(0xFF5390D9)
+val BlueJeans = Color(0xFF4EA8DE)
+val SkyBlue = Color(0xFF48BFE3)
+val MediumCyan = Color(0xFF56CFE1)
+val Turquoise = Color(0xFF64DFDF)
+val Aquamarine = Color(0xFF72EFDD)
+val ElectricBlue = Color(0xFF80FFDB)
+
+// Para tema oscuro
+val DarkPrimary = SkyBlue
+val DarkSecondary = Turquoise
+val DarkTertiary = ElectricBlue
+
+// Para tema claro
+val LightPrimary = DeepPurple
+val LightSecondary = BluePurple
+val LightTertiary = CornflowerBlue

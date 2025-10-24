@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
         CartItemEntity::class,
         AdoptionFormEntity::class
     ],
-    version = 2,
+    version = 1, // ✅ Versión inicial limpia
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -35,25 +35,25 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
-        private const val DB_NAME = "tienda_app.db"
 
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    DB_NAME
+                    "amilimetros_database"
                 )
+                    .fallbackToDestructiveMigration() // ✅ Para desarrollo
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            CoroutineScope(Dispatchers.IO).launch {
-                                val database = getInstance(context)
-                                seedDatabase(database)
+                            INSTANCE?.let { database ->
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    seedDatabase(database)
+                                }
                             }
                         }
                     })
-                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance
@@ -61,103 +61,54 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private suspend fun seedDatabase(db: AppDatabase) {
-            // ========== USUARIOS ==========
-            db.userDao().insert(
-                UserEntity(
-                    name = "Admin",
-                    email = "admin@tienda.cl",
-                    phone = "+56911111111",
-                    password = "Admin123!_",
-                    isAdmin = true
+            try {
+                // Admin
+                db.userDao().insert(
+                    UserEntity(
+                        name = "Admin",
+                        email = "admin@amilimetros.com",
+                        phone = "+56911111111",
+                        password = "Admin123!_",
+                        isAdmin = true
+                    )
                 )
-            )
 
-            db.userDao().insert(
-                UserEntity(
-                    name = "Cliente Demo",
-                    email = "cliente@tienda.cl",
-                    phone = "+56922222222",
-                    password = "Cliente123!_",
-                    isAdmin = false
+                // Usuario demo
+                db.userDao().insert(
+                    UserEntity(
+                        name = "Usuario Demo",
+                        email = "user@demo.com",
+                        phone = "+56922222222",
+                        password = "User123!_",
+                        isAdmin = false
+                    )
                 )
-            )
 
-            // ========== PRODUCTOS ==========
-            val products = listOf(
-                ProductEntity(
-                    name = "Alimento Premium Perro",
-                    description = "Alimento balanceado para perros adultos 15kg",
-                    price = 35990.0,
-                    stock = 50,
-                    category = "Alimento"
-                ),
-                ProductEntity(
-                    name = "Pelota Interactiva",
-                    description = "Pelota de goma resistente con sonido",
-                    price = 8990.0,
-                    stock = 100,
-                    category = "Juguetes"
-                ),
-                ProductEntity(
-                    name = "Collar Ajustable",
-                    description = "Collar ajustable de nylon para perros",
-                    price = 6990.0,
-                    stock = 75,
-                    category = "Accesorios"
-                ),
-                ProductEntity(
-                    name = "Arena para Gatos",
-                    description = "Arena sanitaria aglomerante 10kg",
-                    price = 12990.0,
-                    stock = 60,
-                    category = "Alimento"
-                ),
-                ProductEntity(
-                    name = "Rascador para Gatos",
-                    description = "Rascador de sisal con plataforma",
-                    price = 25990.0,
-                    stock = 30,
-                    category = "Accesorios"
-                )
-            )
-            products.forEach { db.productDao().insert(it) }
+                // Productos
+                listOf(
+                    ProductEntity(name = "Alimento Perro 15kg", description = "Premium adulto", price = 35990.0, stock = 50, category = "Alimento"),
+                    ProductEntity(name = "Alimento Gato 10kg", description = "Premium adulto", price = 28990.0, stock = 40, category = "Alimento"),
+                    ProductEntity(name = "Arena Gatos 10kg", description = "Aglomerante", price = 12990.0, stock = 60, category = "Higiene"),
+                    ProductEntity(name = "Pelota Interactiva", description = "Goma resistente", price = 8990.0, stock = 100, category = "Juguetes"),
+                    ProductEntity(name = "Collar Ajustable", description = "Nylon resistente", price = 6990.0, stock = 75, category = "Accesorios"),
+                    ProductEntity(name = "Cama Grande", description = "Acolchada 80x60cm", price = 45990.0, stock = 30, category = "Accesorios"),
+                    ProductEntity(name = "Rascador Gatos", description = "Sisal 60cm", price = 25990.0, stock = 20, category = "Accesorios"),
+                    ProductEntity(name = "Shampoo Hipoalergénico", description = "500ml", price = 9990.0, stock = 45, category = "Higiene")
+                ).forEach { db.productDao().insert(it) }
 
-            // ========== ANIMALES ==========
-            val animals = listOf(
-                AnimalEntity(
-                    name = "Max",
-                    species = "Perro",
-                    breed = "Labrador",
-                    age = 3,
-                    description = "Perro cariñoso y juguetón, ideal para familias",
-                    isAdopted = false
-                ),
-                AnimalEntity(
-                    name = "Luna",
-                    species = "Gato",
-                    breed = "Siamés",
-                    age = 2,
-                    description = "Gata tranquila y afectuosa",
-                    isAdopted = false
-                ),
-                AnimalEntity(
-                    name = "Rocky",
-                    species = "Perro",
-                    breed = "Pastor Alemán",
-                    age = 5,
-                    description = "Perro guardián, entrenado y leal",
-                    isAdopted = false
-                ),
-                AnimalEntity(
-                    name = "Mimi",
-                    species = "Gato",
-                    breed = "Persa",
-                    age = 1,
-                    description = "Gatita juguetona y curiosa",
-                    isAdopted = false
-                )
-            )
-            animals.forEach { db.animalDao().insert(it) }
+                // Animales
+                listOf(
+                    AnimalEntity(name = "Max", species = "Perro", breed = "Labrador", age = 3, description = "Perro cariñoso y juguetón, ideal para familias", isAdopted = false),
+                    AnimalEntity(name = "Luna", species = "Gato", breed = "Siamés", age = 2, description = "Gata tranquila y afectuosa", isAdopted = false),
+                    AnimalEntity(name = "Rocky", species = "Perro", breed = "Pastor Alemán", age = 5, description = "Perro guardián, entrenado y leal", isAdopted = false),
+                    AnimalEntity(name = "Mimi", species = "Gato", breed = "Persa", age = 1, description = "Gatita juguetona y curiosa", isAdopted = false),
+                    AnimalEntity(name = "Toby", species = "Perro", breed = "Beagle", age = 4, description = "Enérgico y amigable", isAdopted = false),
+                    AnimalEntity(name = "Nala", species = "Gato", breed = "Común Europeo", age = 3, description = "Independiente pero cariñosa", isAdopted = false)
+                ).forEach { db.animalDao().insert(it) }
+
+            } catch (e: Exception) {
+                android.util.Log.e("AppDatabase", "Error seeding database", e)
+            }
         }
     }
 }

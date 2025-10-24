@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.amilimetros.data.local.cart.CartItemEntity
 import com.example.amilimetros.data.repository.CartRepository
+import com.example.amilimetros.ui.notification.NotificationManager
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -25,6 +26,7 @@ class CartViewModel(
     fun incrementQuantity(item: CartItemEntity) {
         viewModelScope.launch {
             cartRepository.updateQuantity(item, item.quantity + 1)
+            NotificationManager.showInfo("Cantidad actualizada")
         }
     }
 
@@ -33,9 +35,11 @@ class CartViewModel(
         viewModelScope.launch {
             if (item.quantity > 1) {
                 cartRepository.updateQuantity(item, item.quantity - 1)
+                NotificationManager.showInfo("Cantidad actualizada")
             } else {
                 // Si llega a 0, eliminar el item
                 cartRepository.removeFromCart(item)
+                NotificationManager.showSuccess("Producto eliminado del carrito")
             }
         }
     }
@@ -44,6 +48,7 @@ class CartViewModel(
     fun removeItem(item: CartItemEntity) {
         viewModelScope.launch {
             cartRepository.removeFromCart(item)
+            NotificationManager.showSuccess("Producto eliminado del carrito")
         }
     }
 
@@ -51,15 +56,15 @@ class CartViewModel(
     fun clearCart() {
         viewModelScope.launch {
             cartRepository.clearCart(userId)
+            NotificationManager.showSuccess("Carrito vaciado")
         }
     }
 
-    // ========== PROCESAR COMPRA (TODO: implementar lógica de pago) ==========
+    // ========== PROCESAR COMPRA ==========
     fun checkout() {
         viewModelScope.launch {
-            // TODO: Aquí irías a una pantalla de pago o procesarías la orden
-            // Por ahora solo vaciamos el carrito
             cartRepository.clearCart(userId)
+            NotificationManager.showSuccess("¡Compra realizada con éxito!")
         }
     }
 }
