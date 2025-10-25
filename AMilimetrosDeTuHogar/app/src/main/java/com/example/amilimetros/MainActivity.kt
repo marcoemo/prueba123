@@ -25,127 +25,151 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
         // ✅ Inicializar BD
         val db = com.example.amilimetros.data.local.database.AppDatabase.getInstance(this)
         android.util.Log.d("MainActivity", "✅ Base de datos inicializada")
 
-        enableEdgeToEdge()
-        setContent {
-            AMilimetrosTheme {
-                AppScaffold()
+        // ✅ Guardar logo en la base de datos si aún no existe
+        val logoDao = db.logoDao()
+
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            if (logoDao.getLogo() == null) {
+                val bitmap = android.graphics.BitmapFactory.decodeResource(
+                    resources,
+                    R.drawable.logo_amilimetros
+                )
+                val stream = java.io.ByteArrayOutputStream()
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream)
+                val imageBytes = stream.toByteArray()
+
+                val logoEntity = com.example.amilimetros.data.local.logo.LogoEntity(
+                    name = "logo",
+                    image = imageBytes
+                )
+                logoDao.insert(logoEntity)
+                android.util.Log.d("MainActivity", "✅ Logo guardado en la base de datos")
+            } else {
+                android.util.Log.d("MainActivity", "ℹ️ Logo ya existía en la base de datos")
+            }
+            enableEdgeToEdge()
+            setContent {
+                AMilimetrosTheme {
+                    AppScaffold()
+                }
             }
         }
     }
-}
 
-@Composable
-fun AppScaffold() {
-    val navController = rememberNavController()
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val userPrefs = remember { UserPreferences(context) }
+    @Composable
+    fun AppScaffold() {
+        val navController = rememberNavController()
+        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
+        val context = LocalContext.current
+        val userPrefs = remember { UserPreferences(context) }
 
-    val isLoggedIn by userPrefs.isLoggedIn.collectAsStateWithLifecycle(false)
-    val isAdmin by userPrefs.isAdmin.collectAsStateWithLifecycle(false)
-    val notificationState by NotificationManager.notificationState.collectAsStateWithLifecycle()
+        val isLoggedIn by userPrefs.isLoggedIn.collectAsStateWithLifecycle(false)
+        val isAdmin by userPrefs.isAdmin.collectAsStateWithLifecycle(false)
+        val notificationState by NotificationManager.notificationState.collectAsStateWithLifecycle()
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
 
-    val drawerItems = defaultDrawerItems(
-        onHome = {
-            scope.launch {
-                navController.navigate(Route.Home.path) {
-                    popUpTo(Route.Home.path) { inclusive = true }
+        val drawerItems = defaultDrawerItems(
+            onHome = {
+                scope.launch {
+                    navController.navigate(Route.Home.path) {
+                        popUpTo(Route.Home.path) { inclusive = true }
+                    }
+                    drawerState.close()
                 }
-                drawerState.close()
-            }
-        },
-        onLogin = {
-            scope.launch {
-                navController.navigate(Route.Login.path)
-                drawerState.close()
-            }
-        },
-        onRegister = {
-            scope.launch {
-                navController.navigate(Route.Register.path)
-                drawerState.close()
-            }
-        },
-        onProducts = {
-            scope.launch {
-                navController.navigate(Route.Products.path)
-                drawerState.close()
-            }
-        },
-        onAnimals = {
-            scope.launch {
-                navController.navigate(Route.Animals.path)
-                drawerState.close()
-            }
-        },
-        onCart = {
-            scope.launch {
-                navController.navigate(Route.Cart.path)
-                drawerState.close()
-            }
-        },
-        onAdmin = {
-            scope.launch {
-                navController.navigate(Route.Admin.path)
-                drawerState.close()
-            }
-        },
-        isLoggedIn = isLoggedIn,
-        isAdmin = isAdmin
-    )
+            },
+            onLogin = {
+                scope.launch {
+                    navController.navigate(Route.Login.path)
+                    drawerState.close()
+                }
+            },
+            onRegister = {
+                scope.launch {
+                    navController.navigate(Route.Register.path)
+                    drawerState.close()
+                }
+            },
+            onProducts = {
+                scope.launch {
+                    navController.navigate(Route.Products.path)
+                    drawerState.close()
+                }
+            },
+            onAnimals = {
+                scope.launch {
+                    navController.navigate(Route.Animals.path)
+                    drawerState.close()
+                }
+            },
+            onCart = {
+                scope.launch {
+                    navController.navigate(Route.Cart.path)
+                    drawerState.close()
+                }
+            },
+            onAdmin = {
+                scope.launch {
+                    navController.navigate(Route.Admin.path)
+                    drawerState.close()
+                }
+            },
+            isLoggedIn = isLoggedIn,
+            isAdmin = isAdmin
+        )
 
-    val showTopBar = currentRoute !in listOf(Route.Login.path, Route.Register.path)
+        val showTopBar = currentRoute !in listOf(Route.Login.path, Route.Register.path)
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            AppDrawer(
-                currentRoute = currentRoute,
-                items = drawerItems
-            )
-        }
-    ) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            topBar = {
-                Column {
-                    if (showTopBar) {
-                        AppTopBar(
-                            onOpenDrawer = { scope.launch { drawerState.open() } },
-                            onHome = {
-                                navController.navigate(Route.Home.path) {
-                                    popUpTo(Route.Home.path) { inclusive = true }
-                                }
-                            },
-                            onProducts = { navController.navigate(Route.Products.path) },
-                            onAnimals = { navController.navigate(Route.Animals.path) },
-                            onCart = { navController.navigate(Route.Cart.path) }
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                AppDrawer(
+                    currentRoute = currentRoute,
+                    items = drawerItems
+                )
+            }
+        ) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    Column {
+                        if (showTopBar) {
+                            AppTopBar(
+                                onOpenDrawer = { scope.launch { drawerState.open() } },
+                                onHome = {
+                                    navController.navigate(Route.Home.path) {
+                                        popUpTo(Route.Home.path) { inclusive = true }
+                                    }
+                                },
+                                onProducts = { navController.navigate(Route.Products.path) },
+                                onAnimals = { navController.navigate(Route.Animals.path) },
+                                onCart = { navController.navigate(Route.Cart.path) }
+                            )
+                        }
+                        CustomSnackbar(
+                            state = notificationState,
+                            onDismiss = { NotificationManager.dismiss() }
                         )
                     }
-                    CustomSnackbar(
-                        state = notificationState,
-                        onDismiss = { NotificationManager.dismiss() }
+                }
+            ) { innerPadding ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    NavGraph(
+                        navController = navController,
+                        startDestination = Route.Home.path
                     )
                 }
-            }
-        ) { innerPadding ->
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                NavGraph(
-                    navController = navController,
-                    startDestination = Route.Home.path
-                )
             }
         }
     }
