@@ -10,62 +10,81 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = DarkPrimary,
-    onPrimary = DeepPurple,
-    primaryContainer = BluePurple,
-    onPrimaryContainer = ElectricBlue,
-
-    secondary = DarkSecondary,
-    onSecondary = RichPurple,
-    secondaryContainer = CornflowerBlue,
-    onSecondaryContainer = Aquamarine,
-
-    tertiary = DarkTertiary,
-    onTertiary = DeepPurple,
-    tertiaryContainer = BlueJeans,
-    onTertiaryContainer = ElectricBlue,
-
-    background = DeepPurple,
-    onBackground = ElectricBlue,
-    surface = RichPurple,
-    onSurface = Aquamarine,
-    surfaceVariant = BluePurple,
-    onSurfaceVariant = Turquoise
-)
-
 private val LightColorScheme = lightColorScheme(
     primary = LightPrimary,
-    onPrimary = ElectricBlue,
-    primaryContainer = SkyBlue,
-    onPrimaryContainer = DeepPurple,
+    onPrimary = LightOnPrimary,
+    primaryContainer = LightPrimaryContainer,
+    onPrimaryContainer = LightOnPrimaryContainer,
 
     secondary = LightSecondary,
-    onSecondary = Aquamarine,
-    secondaryContainer = Turquoise,
-    onSecondaryContainer = RichPurple,
+    onSecondary = LightOnSecondary,
+    secondaryContainer = LightSecondaryContainer,
+    onSecondaryContainer = LightOnSecondaryContainer,
 
     tertiary = LightTertiary,
-    onTertiary = ElectricBlue,
-    tertiaryContainer = MediumCyan,
-    onTertiaryContainer = DeepPurple,
+    onTertiary = LightOnTertiary,
+    tertiaryContainer = LightTertiaryContainer,
+    onTertiaryContainer = LightOnTertiaryContainer,
 
-    background = ElectricBlue,
-    onBackground = DeepPurple,
-    surface = Aquamarine,
-    onSurface = DeepPurple,
-    surfaceVariant = Turquoise,
-    onSurfaceVariant = RichPurple
+    background = LightBackground,
+    onBackground = LightOnBackground,
+    surface = LightSurface,
+    onSurface = LightOnSurface,
+    surfaceVariant = LightSurfaceVariant,
+    onSurfaceVariant = LightOnSurfaceVariant,
+
+    // Colores de error (también claros)
+    error = Color(0xFFFFB4AB),
+    onError = TextBlack,
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = TextBlack,
+
+    // Contornos y divisores
+    outline = Color(0xFFCACACA),
+    outlineVariant = Color(0xFFE8E8E8)
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = DarkPrimary,
+    onPrimary = DarkOnPrimary,
+    primaryContainer = DarkPrimaryContainer,
+    onPrimaryContainer = DarkOnPrimaryContainer,
+
+    secondary = DarkSecondary,
+    onSecondary = DarkOnSecondary,
+    secondaryContainer = DarkSecondaryContainer,
+    onSecondaryContainer = DarkOnSecondaryContainer,
+
+    tertiary = DarkTertiary,
+    onTertiary = DarkOnTertiary,
+    tertiaryContainer = DarkTertiaryContainer,
+    onTertiaryContainer = DarkOnTertiaryContainer,
+
+    background = DarkBackground,
+    onBackground = DarkOnBackground,
+    surface = DarkSurface,
+    onSurface = DarkOnSurface,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = DarkOnSurfaceVariant,
+
+    error = Color(0xFFFFB4AB),
+    onError = TextBlack,
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = TextBlack,
+
+    outline = Color(0xFFB8B8B8),
+    outlineVariant = Color(0xFFD4D4D4)
 )
 
 @Composable
 fun AMilimetrosTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false, // ✅ SIEMPRE modo claro por defecto
     dynamicColor: Boolean = false, // ✅ Desactivado para usar nuestra paleta
     content: @Composable () -> Unit
 ) {
@@ -75,7 +94,7 @@ fun AMilimetrosTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        else -> LightColorScheme // ✅ Siempre claro
     }
 
     val view = LocalView.current
@@ -83,7 +102,7 @@ fun AMilimetrosTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true // ✅ Iconos oscuros en status bar
         }
     }
 

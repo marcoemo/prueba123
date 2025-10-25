@@ -10,7 +10,7 @@ data class ProductEntity(
     val name: String,
     val description: String,
     val price: Double,
-    val stock: Int,
-    val imageUrl: String? = null, // URL de imagen (opcional)
-    val category: String // Ej: "Alimento", "Juguetes", "Accesorios"
+    val imageUrl: String? = null,
+    val category: String
+
 )

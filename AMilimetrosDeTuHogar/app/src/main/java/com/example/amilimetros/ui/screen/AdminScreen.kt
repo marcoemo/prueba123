@@ -155,7 +155,7 @@ private fun AdminProductCard(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "$${product.price} • Stock: ${product.stock}",
+                    text = "$${product.price} ",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
@@ -348,7 +348,6 @@ private fun ProductDialog(
     var name by remember { mutableStateOf(product?.name ?: "") }
     var description by remember { mutableStateOf(product?.description ?: "") }
     var price by remember { mutableStateOf(product?.price?.toString() ?: "") }
-    var stock by remember { mutableStateOf(product?.stock?.toString() ?: "") }
     var category by remember { mutableStateOf(product?.category ?: "Alimento") }
 
     val categories = listOf("Alimento", "Juguetes", "Accesorios", "Higiene", "Salud")
@@ -382,13 +381,7 @@ private fun ProductDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
-                    value = stock,
-                    onValueChange = { stock = it },
-                    label = { Text("Stock") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+
 
                 var expanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(
@@ -426,14 +419,14 @@ private fun ProductDialog(
             TextButton(
                 onClick = {
                     val priceValue = price.toDoubleOrNull() ?: 0.0
-                    val stockValue = stock.toIntOrNull() ?: 0
+
                     onConfirm(
                         ProductEntity(
                             id = product?.id ?: 0L,
                             name = name,
                             description = description,
                             price = priceValue,
-                            stock = stockValue,
+
                             category = category
                         )
                     )

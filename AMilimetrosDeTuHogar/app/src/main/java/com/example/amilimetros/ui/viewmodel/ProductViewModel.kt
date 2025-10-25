@@ -1,5 +1,6 @@
 package com.example.amilimetros.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.amilimetros.data.local.product.ProductEntity
@@ -32,16 +33,22 @@ class ProductViewModel(
 
     // ========== AGREGAR AL CARRITO ==========
     fun addToCart(userId: Long, product: ProductEntity) {
+        Log.d("ProductViewModel", "addToCart called - userId: $userId, product: ${product.name}")
+
         if (userId == 0L) {
+            Log.w("ProductViewModel", "User not logged in")
             NotificationManager.showWarning("Debes iniciar sesión para agregar al carrito")
             return
         }
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
+
+            Log.d("ProductViewModel", "Calling cartRepository.addToCart...")
             val result = cartRepository.addToCart(userId, product, 1)
 
             _uiState.value = if (result.isSuccess) {
+                Log.d("ProductViewModel", "Product added successfully")
                 NotificationManager.showSuccess("${product.name} agregado al carrito")
                 _uiState.value.copy(
                     isLoading = false,
@@ -49,6 +56,7 @@ class ProductViewModel(
                     errorMsg = null
                 )
             } else {
+                Log.e("ProductViewModel", "Error adding product: ${result.exceptionOrNull()?.message}")
                 NotificationManager.showError("Error al agregar al carrito")
                 _uiState.value.copy(
                     isLoading = false,

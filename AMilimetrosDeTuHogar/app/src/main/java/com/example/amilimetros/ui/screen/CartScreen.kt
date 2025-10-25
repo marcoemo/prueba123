@@ -1,12 +1,11 @@
 package com.example.amilimetros.ui.screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,9 +28,41 @@ fun CartScreen() {
     val userPrefs = remember { UserPreferences(context) }
     val userId by userPrefs.userId.collectAsStateWithLifecycle(0L)
 
-    // Crear ViewModel
+    // Log para debug
+    LaunchedEffect(userId) {
+        Log.d("CartScreen", "UserId: $userId")
+    }
+
+    // Crear ViewModel con userId
     val db = remember { AppDatabase.getInstance(context) }
     val cartRepo = remember { CartRepository(db.cartDao()) }
+
+    // IMPORTANTE: Solo crear ViewModel si userId > 0
+    if (userId == 0L) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Icon(
+                    Icons.Filled.ShoppingCart,
+                    contentDescription = null,
+                    modifier = Modifier.size(80.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    "Debes iniciar sesión para ver tu carrito",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        return
+    }
+
     val vm: CartViewModel = viewModel(
         factory = CartViewModelFactory(cartRepo, userId)
     )
@@ -39,86 +70,106 @@ fun CartScreen() {
     val cartItems by vm.cartItems.collectAsStateWithLifecycle()
     val total by vm.total.collectAsStateWithLifecycle()
 
+    // Log para debug
+    LaunchedEffect(cartItems) {
+        Log.d("CartScreen", "Cart items count: ${cartItems.size}")
+        cartItems.forEach { item ->
+            Log.d("CartScreen", "Item: ${item.productName}, qty: ${item.quantity}, price: ${item.productPrice}")
+        }
+    }
+
     var showClearDialog by remember { mutableStateOf(false) }
 
-    Scaffold { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "🛍️ Mi Carrito",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "🛍️ Mi Carrito",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        if (cartItems.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.ShoppingCart,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        "Tu carrito está vacío",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(cartItems, key = { it.id }) { item ->
+                    CartItemCard(
+                        item = item,
+                        onIncrement = { vm.incrementQuantity(item) },
+                        onDecrement = { vm.decrementQuantity(item) },
+                        onRemove = { vm.removeItem(item) }
+                    )
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            // ========== TOTAL ==========
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Total:",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "$${total ?: 0.0}",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
 
-            if (cartItems.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+            // ========== BOTONES ==========
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { showClearDialog = true },
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text("Tu carrito está vacío")
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(cartItems) { item ->
-                        CartItemCard(
-                            item = item,
-                            onIncrement = { vm.incrementQuantity(item) },
-                            onDecrement = { vm.decrementQuantity(item) },
-                            onRemove = { vm.removeItem(item) }
-                        )
-                    }
+                    Text("Vaciar")
                 }
 
-                Divider(modifier = Modifier.padding(vertical = 16.dp))
-
-                // ========== TOTAL ==========
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Button(
+                    onClick = { vm.checkout() },
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = "Total:",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "$${total ?: 0.0}",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // ========== BOTONES ==========
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { showClearDialog = true },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Vaciar Carrito")
-                    }
-
-                    Button(
-                        onClick = { /* TODO: Procesar compra */ },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Comprar")
-                    }
+                    Text("Comprar")
                 }
             }
         }
@@ -129,7 +180,7 @@ fun CartScreen() {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
             title = { Text("Vaciar Carrito") },
-            text = { Text("¿Deseas eliminar todos los productos del carrito?") },
+            text = { Text("¿Deseas eliminar todos los productos?") },
             confirmButton = {
                 TextButton(onClick = {
                     vm.clearCart()
@@ -205,7 +256,8 @@ private fun CartItemCard(
                     Text(
                         text = "${item.quantity}",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.widthIn(min = 32.dp)
                     )
 
                     IconButton(onClick = onIncrement) {

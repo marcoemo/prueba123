@@ -129,10 +129,7 @@ private fun ProductCard(
                         fontWeight = FontWeight.Bold
                     )
 
-                    AssistChip(
-                        onClick = { },
-                        label = { Text("Stock: ${product.stock}") }
-                    )
+
                 }
             }
 
@@ -155,8 +152,7 @@ private fun ProductCard(
                 }
 
                 FilledTonalButton(
-                    onClick = onAddToCart,
-                    enabled = product.stock > 0
+                    onClick = onAddToCart
                 ) {
                     Icon(
                         Icons.Filled.AddShoppingCart,

@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
         CartItemEntity::class,
         AdoptionFormEntity::class
     ],
-    version = 1, // ✅ Versión inicial limpia
+    version = 1, // ✅ VERSIÓN 1 (limpia)
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -43,7 +43,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "amilimetros_database"
                 )
-                    .fallbackToDestructiveMigration() // ✅ Para desarrollo
+                    .fallbackToDestructiveMigration() // ✅ Recrea la BD si hay cambios
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
@@ -62,8 +62,10 @@ abstract class AppDatabase : RoomDatabase() {
 
         private suspend fun seedDatabase(db: AppDatabase) {
             try {
-                // Admin
-                db.userDao().insert(
+                android.util.Log.d("AppDatabase", "🌱 Seeding database...")
+
+                // ========== USUARIOS ==========
+                val adminId = db.userDao().insert(
                     UserEntity(
                         name = "Admin",
                         email = "admin@amilimetros.com",
@@ -72,9 +74,9 @@ abstract class AppDatabase : RoomDatabase() {
                         isAdmin = true
                     )
                 )
+                android.util.Log.d("AppDatabase", "✅ Admin created with id: $adminId")
 
-                // Usuario demo
-                db.userDao().insert(
+                val userId = db.userDao().insert(
                     UserEntity(
                         name = "Usuario Demo",
                         email = "user@demo.com",
@@ -83,31 +85,44 @@ abstract class AppDatabase : RoomDatabase() {
                         isAdmin = false
                     )
                 )
+                android.util.Log.d("AppDatabase", "✅ User created with id: $userId")
 
-                // Productos
-                listOf(
-                    ProductEntity(name = "Alimento Perro 15kg", description = "Premium adulto", price = 35990.0, stock = 50, category = "Alimento"),
-                    ProductEntity(name = "Alimento Gato 10kg", description = "Premium adulto", price = 28990.0, stock = 40, category = "Alimento"),
-                    ProductEntity(name = "Arena Gatos 10kg", description = "Aglomerante", price = 12990.0, stock = 60, category = "Higiene"),
-                    ProductEntity(name = "Pelota Interactiva", description = "Goma resistente", price = 8990.0, stock = 100, category = "Juguetes"),
-                    ProductEntity(name = "Collar Ajustable", description = "Nylon resistente", price = 6990.0, stock = 75, category = "Accesorios"),
-                    ProductEntity(name = "Cama Grande", description = "Acolchada 80x60cm", price = 45990.0, stock = 30, category = "Accesorios"),
-                    ProductEntity(name = "Rascador Gatos", description = "Sisal 60cm", price = 25990.0, stock = 20, category = "Accesorios"),
-                    ProductEntity(name = "Shampoo Hipoalergénico", description = "500ml", price = 9990.0, stock = 45, category = "Higiene")
-                ).forEach { db.productDao().insert(it) }
+                // ========== PRODUCTOS ==========
+                val products = listOf(
+                    ProductEntity(name = "Alimento Perro 15kg", description = "Premium adulto", price = 35990.0,  category = "Alimento"),
+                    ProductEntity(name = "Alimento Gato 10kg", description = "Premium adulto", price = 28990.0, category = "Alimento"),
+                    ProductEntity(name = "Arena Gatos 10kg", description = "Aglomerante", price = 12990.0, category = "Higiene"),
+                    ProductEntity(name = "Pelota Interactiva", description = "Goma resistente", price = 8990.0,  category = "Juguetes"),
+                    ProductEntity(name = "Collar Ajustable", description = "Nylon resistente", price = 6990.0, category = "Accesorios"),
+                    ProductEntity(name = "Cama Grande", description = "Acolchada 80x60cm", price = 45990.0, category = "Accesorios"),
+                    ProductEntity(name = "Rascador Gatos", description = "Sisal 60cm", price = 25990.0,  category = "Accesorios"),
+                    ProductEntity(name = "Shampoo Hipoalergénico", description = "500ml", price = 9990.0,  category = "Higiene")
+                )
 
-                // Animales
-                listOf(
+                products.forEach { product ->
+                    val id = db.productDao().insert(product)
+                    android.util.Log.d("AppDatabase", "✅ Product inserted: ${product.name} (id: $id)")
+                }
+
+                // ========== ANIMALES ==========
+                val animals = listOf(
                     AnimalEntity(name = "Max", species = "Perro", breed = "Labrador", age = 3, description = "Perro cariñoso y juguetón, ideal para familias", isAdopted = false),
                     AnimalEntity(name = "Luna", species = "Gato", breed = "Siamés", age = 2, description = "Gata tranquila y afectuosa", isAdopted = false),
                     AnimalEntity(name = "Rocky", species = "Perro", breed = "Pastor Alemán", age = 5, description = "Perro guardián, entrenado y leal", isAdopted = false),
                     AnimalEntity(name = "Mimi", species = "Gato", breed = "Persa", age = 1, description = "Gatita juguetona y curiosa", isAdopted = false),
                     AnimalEntity(name = "Toby", species = "Perro", breed = "Beagle", age = 4, description = "Enérgico y amigable", isAdopted = false),
                     AnimalEntity(name = "Nala", species = "Gato", breed = "Común Europeo", age = 3, description = "Independiente pero cariñosa", isAdopted = false)
-                ).forEach { db.animalDao().insert(it) }
+                )
+
+                animals.forEach { animal ->
+                    val id = db.animalDao().insert(animal)
+                    android.util.Log.d("AppDatabase", "✅ Animal inserted: ${animal.name} (id: $id)")
+                }
+
+                android.util.Log.d("AppDatabase", "🎉 Database seeded successfully!")
 
             } catch (e: Exception) {
-                android.util.Log.e("AppDatabase", "Error seeding database", e)
+                android.util.Log.e("AppDatabase", "❌ Error seeding database", e)
             }
         }
     }

@@ -1,6 +1,5 @@
 package com.example.amilimetros.data.local.cart
 
-
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
@@ -24,6 +23,7 @@ interface CartDao {
     @Query("DELETE FROM cart_items WHERE userId = :userId")
     suspend fun clearCart(userId: Long)
 
+    // ✅ CORREGIDO: debe ser productPrice * quantity
     @Query("SELECT SUM(productPrice * quantity) FROM cart_items WHERE userId = :userId")
     fun getTotalFlow(userId: Long): Flow<Double?>
 }
