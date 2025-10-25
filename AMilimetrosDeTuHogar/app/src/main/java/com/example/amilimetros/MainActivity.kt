@@ -4,9 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -17,17 +15,20 @@ import androidx.navigation.compose.rememberNavController
 import com.example.amilimetros.data.local.storage.UserPreferences
 import com.example.amilimetros.navigation.NavGraph
 import com.example.amilimetros.navigation.Route
-import com.example.amilimetros.ui.components.AppTopBar
-import com.example.amilimetros.ui.components.AppDrawer
-import com.example.amilimetros.ui.components.defaultDrawerItems
-import com.example.amilimetros.ui.notification.NotificationManager
-import com.example.amilimetros.ui.notification.CustomSnackbar
+import com.example.amilimetros.ui.components.*
 import com.example.amilimetros.ui.theme.AMilimetrosTheme
 import kotlinx.coroutines.launch
+import com.example.amilimetros.ui.notification.NotificationManager
+import com.example.amilimetros.ui.notification.CustomSnackbar
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // ✅ Inicializar BD
+        val db = com.example.amilimetros.data.local.database.AppDatabase.getInstance(this)
+        android.util.Log.d("MainActivity", "✅ Base de datos inicializada")
+
         enableEdgeToEdge()
         setContent {
             AMilimetrosTheme {
@@ -45,29 +46,13 @@ fun AppScaffold() {
     val context = LocalContext.current
     val userPrefs = remember { UserPreferences(context) }
 
-    // Estados de sesión
     val isLoggedIn by userPrefs.isLoggedIn.collectAsStateWithLifecycle(false)
     val isAdmin by userPrefs.isAdmin.collectAsStateWithLifecycle(false)
-
-    // ✅ Estado de notificaciones GLOBAL
     val notificationState by NotificationManager.notificationState.collectAsStateWithLifecycle()
 
-    // Ruta actual
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Función para cerrar sesión
-    val onLogout: () -> Unit = {
-        scope.launch {
-            userPrefs.logout()
-            navController.navigate(Route.Home.path) {
-                popUpTo(Route.Home.path) { inclusive = true }
-            }
-            drawerState.close()
-        }
-    }
-
-    // Items del drawer
     val drawerItems = defaultDrawerItems(
         onHome = {
             scope.launch {
@@ -117,7 +102,6 @@ fun AppScaffold() {
         isAdmin = isAdmin
     )
 
-    // Determinar si mostrar TopBar (no en Login/Register)
     val showTopBar = currentRoute !in listOf(Route.Login.path, Route.Register.path)
 
     ModalNavigationDrawer(
@@ -135,27 +119,17 @@ fun AppScaffold() {
                 Column {
                     if (showTopBar) {
                         AppTopBar(
-                            onOpenDrawer = {
-                                scope.launch { drawerState.open() }
-                            },
+                            onOpenDrawer = { scope.launch { drawerState.open() } },
                             onHome = {
                                 navController.navigate(Route.Home.path) {
                                     popUpTo(Route.Home.path) { inclusive = true }
                                 }
                             },
-                            onProducts = {
-                                navController.navigate(Route.Products.path)
-                            },
-                            onAnimals = {
-                                navController.navigate(Route.Animals.path)
-                            },
-                            onCart = {
-                                navController.navigate(Route.Cart.path)
-                            }
+                            onProducts = { navController.navigate(Route.Products.path) },
+                            onAnimals = { navController.navigate(Route.Animals.path) },
+                            onCart = { navController.navigate(Route.Cart.path) }
                         )
                     }
-
-                    // ✅ NOTIFICACIÓN GLOBAL (siempre visible)
                     CustomSnackbar(
                         state = notificationState,
                         onDismiss = { NotificationManager.dismiss() }
