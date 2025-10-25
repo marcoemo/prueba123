@@ -23,7 +23,7 @@ import com.example.amilimetros.data.local.logo.*
         AdoptionFormEntity::class ,
                 LogoEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -36,7 +36,7 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
-        private const val DB_NAME = "tienda_app.db"
+        private const val DB_NAME = "tienda_app_v3.db"
 
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {

@@ -21,42 +21,52 @@ import kotlinx.coroutines.launch
 import com.example.amilimetros.ui.notification.NotificationManager
 import com.example.amilimetros.ui.notification.CustomSnackbar
 
+// NUEVOS IMPORTS para corrutinas seguras con lifecycle
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-        // ✅ Inicializar BD
+        // ✅ Inicializar BD (se conserva)
         val db = com.example.amilimetros.data.local.database.AppDatabase.getInstance(this)
         android.util.Log.d("MainActivity", "✅ Base de datos inicializada")
 
         // ✅ Guardar logo en la base de datos si aún no existe
         val logoDao = db.logoDao()
 
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-            if (logoDao.getLogo() == null) {
-                val bitmap = android.graphics.BitmapFactory.decodeResource(
-                    resources,
-                    R.drawable.logo_amilimetros
-                )
-                val stream = java.io.ByteArrayOutputStream()
-                bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream)
-                val imageBytes = stream.toByteArray()
-
-                val logoEntity = com.example.amilimetros.data.local.logo.LogoEntity(
-                    name = "logo",
-                    image = imageBytes
-                )
-                logoDao.insert(logoEntity)
-                android.util.Log.d("MainActivity", "✅ Logo guardado en la base de datos")
-            } else {
-                android.util.Log.d("MainActivity", "ℹ️ Logo ya existía en la base de datos")
+        // --- IMPORTANTE: mover UI al hilo principal inmediatamente ---
+        enableEdgeToEdge()
+        setContent {
+            AMilimetrosTheme {
+                AppScaffold()
             }
-            enableEdgeToEdge()
-            setContent {
-                AMilimetrosTheme {
-                    AppScaffold()
+        }
+
+        // Mantener la operación de BD en background (Dispatchers.IO) usando lifecycleScope
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                if (logoDao.getLogo() == null) {
+                    val bitmap = android.graphics.BitmapFactory.decodeResource(
+                        resources,
+                        R.drawable.logo_amilimetros
+                    )
+                    val stream = java.io.ByteArrayOutputStream()
+                    bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream)
+                    val imageBytes = stream.toByteArray()
+
+                    val logoEntity = com.example.amilimetros.data.local.logo.LogoEntity(
+                        name = "logo",
+                        image = imageBytes
+                    )
+                    logoDao.insert(logoEntity)
+                    android.util.Log.d("MainActivity", "✅ Logo guardado en la base de datos")
+                } else {
+                    android.util.Log.d("MainActivity", "ℹ️ Logo ya existía en la base de datos")
                 }
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "❌ Error al inicializar logo: ${e.localizedMessage}", e)
             }
         }
     }
