@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
         CartItemEntity::class,
         AdoptionFormEntity::class
     ],
-    version = 1, // ✅ VERSIÓN 1 (limpia)
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -62,9 +62,19 @@ abstract class AppDatabase : RoomDatabase() {
 
         private suspend fun seedDatabase(db: AppDatabase) {
             try {
-                android.util.Log.d("AppDatabase", "🌱 Seeding database...")
+                android.util.Log.d("AppDatabase", "🌱 INICIANDO seed...")
+
+                // Verificar si ya hay datos
+                val existingUsers = db.userDao().count()
+                android.util.Log.d("AppDatabase", "📊 Usuarios existentes: $existingUsers")
+
+                if (existingUsers > 0) {
+                    android.util.Log.d("AppDatabase", "⚠️ BD ya tiene datos, saltando seed")
+                    return
+                }
 
                 // ========== USUARIOS ==========
+                android.util.Log.d("AppDatabase", "👤 Insertando admin...")
                 val adminId = db.userDao().insert(
                     UserEntity(
                         name = "Admin",
@@ -74,8 +84,9 @@ abstract class AppDatabase : RoomDatabase() {
                         isAdmin = true
                     )
                 )
-                android.util.Log.d("AppDatabase", "✅ Admin created with id: $adminId")
+                android.util.Log.d("AppDatabase", "✅ Admin ID: $adminId")
 
+                android.util.Log.d("AppDatabase", "👤 Insertando user demo...")
                 val userId = db.userDao().insert(
                     UserEntity(
                         name = "Usuario Demo",
@@ -85,44 +96,55 @@ abstract class AppDatabase : RoomDatabase() {
                         isAdmin = false
                     )
                 )
-                android.util.Log.d("AppDatabase", "✅ User created with id: $userId")
+                android.util.Log.d("AppDatabase", "✅ User ID: $userId")
 
                 // ========== PRODUCTOS ==========
+                android.util.Log.d("AppDatabase", "🛍️ Insertando productos...")
                 val products = listOf(
-                    ProductEntity(name = "Alimento Perro 15kg", description = "Premium adulto", price = 35990.0,  category = "Alimento"),
+                    ProductEntity(name = "Alimento Perro 15kg", description = "Premium adulto", price = 35990.0, category = "Alimento"),
                     ProductEntity(name = "Alimento Gato 10kg", description = "Premium adulto", price = 28990.0, category = "Alimento"),
                     ProductEntity(name = "Arena Gatos 10kg", description = "Aglomerante", price = 12990.0, category = "Higiene"),
-                    ProductEntity(name = "Pelota Interactiva", description = "Goma resistente", price = 8990.0,  category = "Juguetes"),
+                    ProductEntity(name = "Pelota Interactiva", description = "Goma resistente", price = 8990.0, category = "Juguetes"),
                     ProductEntity(name = "Collar Ajustable", description = "Nylon resistente", price = 6990.0, category = "Accesorios"),
                     ProductEntity(name = "Cama Grande", description = "Acolchada 80x60cm", price = 45990.0, category = "Accesorios"),
-                    ProductEntity(name = "Rascador Gatos", description = "Sisal 60cm", price = 25990.0,  category = "Accesorios"),
-                    ProductEntity(name = "Shampoo Hipoalergénico", description = "500ml", price = 9990.0,  category = "Higiene")
+                    ProductEntity(name = "Rascador Gatos", description = "Sisal 60cm", price = 25990.0, category = "Accesorios"),
+                    ProductEntity(name = "Shampoo Hipoalergénico", description = "500ml", price = 9990.0, category = "Higiene")
                 )
 
-                products.forEach { product ->
+                products.forEachIndexed { index, product ->
                     val id = db.productDao().insert(product)
-                    android.util.Log.d("AppDatabase", "✅ Product inserted: ${product.name} (id: $id)")
+                    android.util.Log.d("AppDatabase", "✅ Producto ${index + 1}: ${product.name} (ID: $id)")
                 }
 
                 // ========== ANIMALES ==========
+                android.util.Log.d("AppDatabase", "🐾 Insertando animales...")
                 val animals = listOf(
-                    AnimalEntity(name = "Max", species = "Perro", breed = "Labrador", age = 3, description = "Perro cariñoso y juguetón, ideal para familias", isAdopted = false),
-                    AnimalEntity(name = "Luna", species = "Gato", breed = "Siamés", age = 2, description = "Gata tranquila y afectuosa", isAdopted = false),
-                    AnimalEntity(name = "Rocky", species = "Perro", breed = "Pastor Alemán", age = 5, description = "Perro guardián, entrenado y leal", isAdopted = false),
-                    AnimalEntity(name = "Mimi", species = "Gato", breed = "Persa", age = 1, description = "Gatita juguetona y curiosa", isAdopted = false),
-                    AnimalEntity(name = "Toby", species = "Perro", breed = "Beagle", age = 4, description = "Enérgico y amigable", isAdopted = false),
-                    AnimalEntity(name = "Nala", species = "Gato", breed = "Común Europeo", age = 3, description = "Independiente pero cariñosa", isAdopted = false)
+                    AnimalEntity(name = "Max", species = "Perro", breed = "Labrador", age = 3, description = "Perro cariñoso", isAdopted = false),
+                    AnimalEntity(name = "Luna", species = "Gato", breed = "Siamés", age = 2, description = "Gata tranquila", isAdopted = false),
+                    AnimalEntity(name = "Rocky", species = "Perro", breed = "Pastor Alemán", age = 5, description = "Perro guardián", isAdopted = false),
+                    AnimalEntity(name = "Mimi", species = "Gato", breed = "Persa", age = 1, description = "Gatita juguetona", isAdopted = false),
+                    AnimalEntity(name = "Toby", species = "Perro", breed = "Beagle", age = 4, description = "Enérgico", isAdopted = false),
+                    AnimalEntity(name = "Nala", species = "Gato", breed = "Común Europeo", age = 3, description = "Independiente", isAdopted = false)
                 )
 
-                animals.forEach { animal ->
+                animals.forEachIndexed { index, animal ->
                     val id = db.animalDao().insert(animal)
-                    android.util.Log.d("AppDatabase", "✅ Animal inserted: ${animal.name} (id: $id)")
+                    android.util.Log.d("AppDatabase", "✅ Animal ${index + 1}: ${animal.name} (ID: $id)")
                 }
 
-                android.util.Log.d("AppDatabase", "🎉 Database seeded successfully!")
+                // Verificación final
+                val totalUsers = db.userDao().count()
+                val totalProducts = db.productDao().count()
+                val totalAnimals = db.animalDao().count()
+
+                android.util.Log.d("AppDatabase", "🎉 SEED COMPLETADO:")
+                android.util.Log.d("AppDatabase", "   📊 Usuarios: $totalUsers")
+                android.util.Log.d("AppDatabase", "   📊 Productos: $totalProducts")
+                android.util.Log.d("AppDatabase", "   📊 Animales: $totalAnimals")
 
             } catch (e: Exception) {
-                android.util.Log.e("AppDatabase", "❌ Error seeding database", e)
+                android.util.Log.e("AppDatabase", "❌ ERROR en seed", e)
+                e.printStackTrace()
             }
         }
     }

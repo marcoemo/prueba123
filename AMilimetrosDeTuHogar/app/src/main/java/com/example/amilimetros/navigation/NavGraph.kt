@@ -25,7 +25,7 @@ fun NavGraph(
     val scope = rememberCoroutineScope()
     val userPrefs = remember { UserPreferences(context) }
 
-    // Base de datos y repositorios
+    // ✅ Lazy initialization
     val db = remember { AppDatabase.getInstance(context) }
     val userRepo = remember { UserRepository(db.userDao()) }
     val productRepo = remember { ProductRepository(db.productDao()) }
